@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Цветочная лавка — доставка цветов по Бишкеку</title>
+<meta name="description" content="Свежие букеты с доставкой по Бишкеку. Заказ в WhatsApp за 1 минуту.">
+<link rel="preconnect" href="https://images.unsplash.com">
+<script>
+/* =====================================================================
+   НАСТРОЙКИ МАГАЗИНА — меняйте только этот блок.
+   URL-параметры переопределяют: ?name=...&phone=...&addr=...
+   (дополнительно: &wa=996700123456 &ig=shop_login &hours=...)
+   ===================================================================== */
+const SHOP = {
+  name: "Цветочная лавка",
+  tagline: "Свежие букеты с доставкой по Бишкеку за 90 минут",
+  phone: "+996 700 123 456",
+  whatsapp: "996700123456",          // только цифры, с кодом страны
+  instagram: "flowers_bishkek",       // логин без @
+  address: "г. Бишкек, ул. Киевская, 95",
+  hours: "Ежедневно 08:00 – 22:00",
+  city: "Бишкек", cityIn: "Бишкеке", cityDat: "Бишкеку", // «в Бишкеке», «по Бишкеку»
+  currency: "сом",
+  colors: { primary: "#c2416b", primaryDark: "#9e2f55", accent: "#f7e3e8", bg: "#fffaf8", text: "#2b2024" },
+  heroImage: "https://images.unsplash.com/photo-1487070183336-b863922373d4?w=1400&q=70&auto=format&fit=crop",
+  aboutImage: "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=900&q=70&auto=format&fit=crop",
+  delivery: [
+    { t: "По центру Бишкека", d: "Бесплатно от 3 000 сом, иначе 200 сом" },
+    { t: "Отдалённые районы и мкр.", d: "250 – 400 сом" },
+    { t: "Пригород (Кой-Таш, Ала-Арча, Чон-Арык)", d: "от 500 сом" },
+    { t: "Время доставки", d: "60–120 минут или к точному времени, 08:00–22:00" }
+  ],
+  reviews: [
+    { n: "Айгерим", t: "Заказала букет маме на день рождения прямо из WhatsApp — привезли через час, цветы стояли почти две недели!", s: 5 },
+    { n: "Бекзат", t: "Удобно: выбрал на сайте, нажал кнопку, мне сразу ответили. Курьер позвонил заранее. Рекомендую.", s: 5 },
+    { n: "Динара", t: "Делали свадебный букет и бутоньерку. Всё точно как на фото, очень нежно и аккуратно.", s: 5 }
+  ],
+  categories: ["Все", "Букеты", "Розы", "В коробке", "Свадебные", "Комнатные"],
+  bouquets: [
+    { name: "Солнечный день", cat: "Букеты", price: 3200, desc: "9 подсолнухов с зеленью", img: "photo-1455659817273-f96807779a8a", hit: true },
+    { name: "Весенние тюльпаны", cat: "Букеты", price: 2500, desc: "15 тюльпанов в крафте", img: "photo-1561181286-d3fee7d55364" },
+    { name: "Осенний огонь", cat: "Букеты", price: 3900, desc: "Розы, альстромерии, эвкалипт", img: "photo-1533616688419-b7a585564566" },
+    { name: "Садовый микс", cat: "Букеты", price: 5800, desc: "Пионовидные розы, эустома, гортензия", img: "photo-1487530811176-3780de880c2d", hit: true },
+    { name: "101 красная роза", cat: "Розы", price: 12900, desc: "Роза Эквадор 50 см", img: "photo-1519378058457-4c29a0a2efac" },
+    { name: "Роза-комплимент", cat: "Розы", price: 350, desc: "Одна роза в упаковке", img: "photo-1518895949257-7621c3c786d7" },
+    { name: "Радужные розы в коробке", cat: "В коробке", price: 6500, desc: "25 окрашенных роз в шляпной коробке", img: "photo-1508610048659-a06b669e3321" },
+    { name: "Нежность в коробке", cat: "В коробке", price: 5400, desc: "Пионовидные розы в коробке", img: "photo-1591886960571-74d43a9d4166" },
+    { name: "Букет невесты «Айдана»", cat: "Свадебные", price: 4800, desc: "Пастельные розы и эустома", img: "photo-1563241527-3004b7be0ffd" },
+    { name: "Каллы для невесты", cat: "Свадебные", price: 4200, desc: "Элегантный букет из калл", img: "photo-1469259943454-aa100abba749" },
+    { name: "Суккулент в кашпо", cat: "Комнатные", price: 1200, desc: "Эхеверия в керамическом кашпо", img: "photo-1485955900006-10f4d324d411" },
+    { name: "Кактус «Малыш»", cat: "Комнатные", price: 650, desc: "Мини-кактус в терракоте", img: "photo-1459411552884-841db9b3cc2a" }
+  ]
+};
+/* ===== URL-параметры для персонального демо ===== */
+(function(){
+  const p = new URLSearchParams(location.search);
+  if (p.get("name")) SHOP.name = p.get("name").slice(0, 60);
+  if (p.get("phone")) {
+    SHOP.phone = p.get("phone").slice(0, 30);
+    const d = SHOP.phone.replace(/\D/g, "");
+    if (d.length >= 9) SHOP.whatsapp = d.length === 9 ? "996" + d : (d.startsWith("0") && d.length === 10 ? "996" + d.slice(1) : d);
+  }
+  if (p.get("wa")) SHOP.whatsapp = p.get("wa").replace(/\D/g, "");
+  if (p.get("addr")) SHOP.address = p.get("addr").slice(0, 120);
+  if (p.get("ig")) SHOP.instagram = p.get("ig").replace(/[^\w.]/g, "");
+  if (p.get("hours")) SHOP.hours = p.get("hours").slice(0, 60);
+  const c = SHOP.colors, r = document.documentElement.style;
+  r.setProperty("--p", c.primary); r.setProperty("--pd", c.primaryDark); r.setProperty("--a", c.accent);
+  r.setProperty("--bg", c.bg); r.setProperty("--tx", c.text);
+})();
+</script>
+<style>
+:root{--p:#c2416b;--pd:#9e2f55;--a:#f7e3e8;--bg:#fffaf8;--tx:#2b2024;--mut:#7a6a70;--r:18px;--sh:0 10px 30px rgba(80,20,40,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit}
+h1,h2,h3{font-family:"Playfair Display",Georgia,"Times New Roman",serif;line-height:1.15;font-weight:700}
+.wrap{max-width:1160px;margin:0 auto;padding:0 18px}
+section{padding:64px 0}
+.eyebrow{display:inline-block;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--p);font-weight:600;margin-bottom:10px}
+.h2{font-size:clamp(28px,5vw,40px);margin-bottom:14px}
+.lead{color:var(--mut);max-width:620px}
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;cursor:pointer;background:var(--p);color:#fff;text-decoration:none;font-weight:600;padding:14px 22px;border-radius:999px;font-size:16px;transition:transform .15s,background .2s,box-shadow .2s;box-shadow:0 8px 20px color-mix(in srgb,var(--p) 35%,transparent)}
+.btn:hover{background:var(--pd);transform:translateY(-1px)}
+.btn.wa{background:#25D366;box-shadow:0 8px 20px rgba(37,211,102,.35)}
+.btn.wa:hover{background:#1ebe5a}
+.btn.ghost{background:rgba(255,255,255,.15);box-shadow:none;border:1.5px solid rgba(255,255,255,.7);backdrop-filter:blur(6px)}
+.ico{width:20px;height:20px;flex:none}
+/* header */
+header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,.05)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{font-family:Georgia,serif;font-weight:700;font-size:20px;text-decoration:none;display:flex;align-items:center;gap:8px}
+.logo span{color:var(--p)}
+.menu{display:none;gap:26px;font-size:15px}
+.menu a{text-decoration:none;color:var(--mut)}.menu a:hover{color:var(--p)}
+.nav .btn{padding:10px 16px;font-size:14px}
+@media(min-width:900px){.menu{display:flex}}
+/* hero */
+.hero{position:relative;min-height:88vh;display:flex;align-items:flex-end;color:#fff;padding:0;overflow:hidden;background:linear-gradient(135deg,#6b2340,#c2416b)}
+.hero img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,10,18,.15) 0%,rgba(30,10,18,.35) 45%,rgba(30,10,18,.82) 100%)}
+.hero .wrap{position:relative;z-index:1;padding-bottom:56px;padding-top:120px}
+.hero h1{font-size:clamp(38px,8vw,72px);max-width:760px;margin-bottom:14px}
+.hero p{font-size:clamp(17px,2.4vw,21px);max-width:560px;opacity:.93;margin-bottom:26px}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:12px}
+.badges{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:30px;font-size:14px;opacity:.92}
+.badges div{display:flex;align-items:center;gap:8px}
+.badges b{font-size:18px}
+/* catalog */
+.filters{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;margin:22px -18px 18px;padding-left:18px;padding-right:18px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid #ead7dd;background:#fff;color:var(--tx);padding:9px 18px;border-radius:999px;font-size:15px;cursor:pointer;transition:.2s;font-weight:500}
+.chip.on,.chip:hover{background:var(--p);border-color:var(--p);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(min-width:720px){.grid{grid-template-columns:repeat(3,1fr);gap:20px}}
+@media(min-width:1024px){.grid{grid-template-columns:repeat(4,1fr)}}
+.card{background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s;animation:fade .35s ease both}
+.card:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(80,20,40,.13)}
+.card .ph{position:relative;aspect-ratio:1/1;overflow:hidden;background:linear-gradient(135deg,var(--a),#fde9d9)}
+.card .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tag{position:absolute;top:10px;left:10px;background:#fff;color:var(--p);font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+.card .bd{padding:12px 14px 14px;display:flex;flex-direction:column;flex:1}
+.card h3{font-size:17px;margin-bottom:4px}
+.card .ds{font-size:13px;color:var(--mut);margin-bottom:10px;flex:1}
+.card .ft{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.price{font-weight:700;font-size:18px;white-space:nowrap}
+.card .btn{padding:9px 14px;font-size:14px;box-shadow:none}
+@media(max-width:420px){.card .btn{width:100%;justify-content:center}.card h3{font-size:15px}}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* delivery */
+.del{background:#fff}
+.two{display:grid;gap:28px}
+@media(min-width:900px){.two{grid-template-columns:1fr 1fr;gap:48px;align-items:start}}
+.dl{display:grid;gap:12px;margin-top:22px}
+.dl>div{display:flex;gap:14px;align-items:flex-start;background:var(--bg);border-radius:14px;padding:14px 16px}
+.dl .n{flex:none;width:38px;height:38px;border-radius:50%;background:var(--a);color:var(--p);display:grid;place-items:center;font-size:18px}
+.dl b{display:block}.dl span{color:var(--mut);font-size:14px}
+form.order{background:var(--bg);border-radius:var(--r);padding:22px;box-shadow:var(--sh);display:grid;gap:12px}
+form.order h3{font-size:22px}
+form.order label{font-size:13px;color:var(--mut);display:grid;gap:5px}
+form.order input,form.order select,form.order textarea{font:inherit;padding:12px 14px;border-radius:12px;border:1.5px solid #ead7dd;background:#fff;color:var(--tx);width:100%}
+form.order input:focus,form.order select:focus,form.order textarea:focus{outline:none;border-color:var(--p)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+form.order .btn{justify-content:center;margin-top:4px}
+/* about */
+.about img{border-radius:var(--r);aspect-ratio:4/3;object-fit:cover;width:100%;box-shadow:var(--sh)}
+.feats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.feats div{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--sh);font-size:14px;color:var(--mut)}
+.feats b{display:block;color:var(--tx);font-size:16px;margin-bottom:2px}
+/* reviews */
+.rev{background:var(--a)}
+.rgrid{display:grid;gap:16px;margin-top:26px}
+@media(min-width:800px){.rgrid{grid-template-columns:repeat(3,1fr)}}
+.rv{background:#fff;border-radius:var(--r);padding:22px;box-shadow:var(--sh)}
+.rv .st{color:#f5a623;letter-spacing:2px;margin-bottom:8px}
+.rv p{margin-bottom:14px}
+.rv .au{display:flex;align-items:center;gap:10px;font-weight:600}
+.rv .av{width:38px;height:38px;border-radius:50%;background:var(--p);color:#fff;display:grid;place-items:center}
+/* contacts */
+.map{position:relative;border-radius:var(--r);min-height:300px;overflow:hidden;background:
+ linear-gradient(0deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%) 0 0/120px 120px,
+ linear-gradient(90deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%) 0 0/120px 120px,
+ linear-gradient(35deg,transparent 49%,#fbe9c8 49%,#fbe9c8 53%,transparent 53%) 0 0/260px 260px,
+ #eef1ea;display:grid;place-items:center;box-shadow:var(--sh);text-decoration:none}
+.map .pin{background:#fff;border-radius:16px;padding:14px 18px;text-align:center;box-shadow:var(--sh);max-width:80%}
+.map .pin i{font-style:normal;font-size:30px;display:block}
+.map .pin small{color:var(--mut)}
+.clist{display:grid;gap:14px;margin:22px 0}
+.clist>div{display:flex;gap:12px;align-items:flex-start}
+.clist .n{flex:none;width:40px;height:40px;border-radius:12px;background:var(--a);display:grid;place-items:center}
+.clist small{display:block;color:var(--mut)}
+.clist a{text-decoration:none;font-weight:600}
+.cbtns{display:flex;flex-wrap:wrap;gap:10px}
+.btn.ig{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);box-shadow:none}
+/* footer */
+footer{background:#241a1e;color:#cbb9bf;padding:36px 0 90px;font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
+footer .logo{color:#fff}
+/* floating */
+.fab{position:fixed;right:16px;bottom:16px;z-index:60;width:58px;height:58px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 10px 25px rgba(37,211,102,.45);animation:pulse 2.4s infinite}
+.fab svg{width:30px;height:30px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,.5)}50%{box-shadow:0 0 0 12px rgba(37,211,102,0)}}
+.empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:30px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="wa" viewBox="0 0 24 24"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 21.5h-.01a9.4 9.4 0 0 1-4.8-1.31l-.34-.2-3.57.93.96-3.48-.23-.36a9.4 9.4 0 0 1-1.44-5.02c0-5.2 4.23-9.43 9.44-9.43a9.4 9.4 0 0 1 9.43 9.44c0 5.2-4.24 9.43-9.44 9.43zm8.02-17.46A11.26 11.26 0 0 0 12.05.72C5.8.72.72 5.8.72 12.05c0 2 .52 3.95 1.52 5.66L.62 23.6l6.03-1.58a11.3 11.3 0 0 0 5.4 1.38h.01c6.25 0 11.33-5.08 11.34-11.33 0-3.03-1.18-5.88-3.330-8.03z"/></symbol></svg>
+
+<header><div class="wrap nav">
+  <a href="#top" class="logo">🌸 <span data-f="name"></span></a>
+  <nav class="menu"><a href="#catalog">Каталог</a><a href="#delivery">Доставка</a><a href="#about">О нас</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a></nav>
+  <a class="btn wa" data-wa="Здравствуйте! Хочу заказать цветы."><svg class="ico"><use href="#wa"/></svg>Написать</a>
+</div></header>
+
+<section class="hero" id="top">
+  <img class="bg" alt="" fetchpriority="high">
+  <div class="wrap">
+    <span class="eyebrow" style="color:#ffd3e0">Цветы в <span data-f="cityIn"></span></span>
+    <h1 data-f="name"></h1>
+    <p data-f="tagline"></p>
+    <div class="ctas">
+      <a class="btn wa" data-wa="Здравствуйте! Хочу заказать букет."><svg class="ico"><use href="#wa"/></svg>Заказать в WhatsApp</a>
+      <a class="btn ghost" href="#catalog">Смотреть каталог</a>
+    </div>
+    <div class="badges"><div><b>🚚</b>Доставка от 60 минут</div><div><b>📸</b>Фото букета перед отправкой</div><div><b>🌷</b>Только свежие цветы</div></div>
+  </div>
+</section>
+
+<section id="catalog"><div class="wrap">
+  <span class="eyebrow">Каталог</span>
+  <h2 class="h2">Букеты и композиции</h2>
+  <p class="lead">Выберите букет и нажмите «Заказать» — откроется WhatsApp с готовым сообщением. Соберём любой букет и под ваш бюджет.</p>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+</div></section>
+
+<section class="del" id="delivery"><div class="wrap two">
+  <div>
+    <span class="eyebrow">Доставка</span>
+    <h2 class="h2">Доставим по <span data-f="cityDat"></span> бережно и вовремя</h2>
+    <p class="lead">Перед отправкой пришлём фото букета. Можно доставить анонимно и с открыткой.</p>
+    <div class="dl" id="dl"></div>
+  </div>
+  <form class="order" id="order">
+    <h3>Быстрый заказ</h3>
+    <label>Букет<select name="b" id="osel"></select></label>
+    <div class="row2">
+      <label>Дата<input type="date" name="d"></label>
+      <label>Время<input type="time" name="t"></label>
+    </div>
+    <label>Адрес доставки<input name="a" placeholder="ул., дом, кв. / мкр."></label>
+    <label>Текст открытки (необязательно)<textarea name="c" rows="2" placeholder="С днём рождения!"></textarea></label>
+    <button class="btn wa" type="submit"><svg class="ico"><use href="#wa"/></svg>Отправить заказ в WhatsApp</button>
+  </form>
+</div></section>
+
+<section class="about" id="about"><div class="wrap two">
+  <img id="aboutImg" alt="Наша флористика" loading="lazy">
+  <div>
+    <span class="eyebrow">О нас</span>
+    <h2 class="h2"><span data-f="name"></span> — цветы с душой</h2>
+    <p class="lead">Мы — небольшая команда флористов из Бишкека. Каждый день получаем свежие цветы и собираем букеты вручную: для любимых, мам, коллег и самых важных дней в жизни.</p>
+    <div class="feats">
+      <div><b>5+ лет</b>дарим радость бишкекчанам</div>
+      <div><b>3 000+</b>довольных клиентов</div>
+      <div><b>Свежесть</b>цветы стоят от 7 дней</div>
+      <div><b>Оплата</b>наличные, MBank, О!Деньги</div>
+    </div>
+  </div>
+</div></section>
+
+<section class="rev" id="reviews"><div class="wrap">
+  <span class="eyebrow">Отзывы</span>
+  <h2 class="h2">Что говорят клиенты</h2>
+  <div class="rgrid" id="rgrid"></div>
+</div></section>
+
+<section id="contacts"><div class="wrap two">
+  <div>
+    <span class="eyebrow">Контакты</span>
+    <h2 class="h2">Ждём вас в гости</h2>
+    <div class="clist">
+      <div><span class="n">📍</span><div><small>Адрес</small><span data-f="address"></span></div></div>
+      <div><span class="n">🕘</span><div><small>Часы работы</small><span data-f="hours"></span></div></div>
+      <div><span class="n">📞</span><div><small>Телефон</small><a id="tel" data-f="phone"></a></div></div>
+      <div><span class="n">📷</span><div><small>Instagram</small><a id="igl" target="_blank" rel="noopener"></a></div></div>
+    </div>
+    <div class="cbtns">
+      <a class="btn wa" data-wa="Здравствуйте! Хочу заказать цветы."><svg class="ico"><use href="#wa"/></svg>WhatsApp</a>
+      <a class="btn ig" id="igb" target="_blank" rel="noopener">Instagram</a>
+    </div>
+  </div>
+  <a class="map" id="map" target="_blank" rel="noopener" aria-label="Открыть на карте">
+    <div class="pin"><i>📍</i><b data-f="name"></b><br><small data-f="address"></small><br><small>Открыть в 2ГИС →</small></div>
+  </a>
+</div></section>
+
+<footer><div class="wrap">
+  <a href="#top" class="logo">🌸 <span data-f="name"></span></a>
+  <div>© <span id="yr"></span> <span data-f="name"></span>. Доставка цветов по <span data-f="cityDat"></span>.</div>
+</div></footer>
+
+<a class="fab" data-wa="Здравствуйте! Хочу заказать цветы." aria-label="Написать в WhatsApp"><svg style="color:#fff"><use href="#wa"/></svg></a>
+
+<script>
+(function(){
+  const S = SHOP, $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+  const fmt = n => n.toLocaleString("ru-RU").replace(/\u00a0/g, " ") + " " + S.currency;
+  const wa = txt => "https://wa.me/" + S.whatsapp + "?text=" + encodeURIComponent(txt);
+  const img = (id, w) => id.startsWith("http") ? id : "https://images.unsplash.com/" + id + "?w=" + w + "&q=70&auto=format&fit=crop";
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+
+  document.title = S.name + " — доставка цветов по " + S.cityDat;
+  $$("[data-f]").forEach(e => e.textContent = S[e.dataset.f]);
+  $$("[data-wa]").forEach(e => { e.href = wa(e.dataset.wa + " (с сайта " + S.name + ")"); e.target = "_blank"; e.rel = "noopener"; });
+  $(".hero img.bg").src = S.heroImage;
+  $("#aboutImg").src = S.aboutImage;
+  $("#tel").href = "tel:" + S.phone.replace(/[^\d+]/g, "");
+  const ig = "https://instagram.com/" + S.instagram;
+  $("#igl").href = $("#igb").href = ig; $("#igl").textContent = "@" + S.instagram;
+  $("#map").href = "https://2gis.kg/bishkek/search/" + encodeURIComponent(S.address);
+  $("#yr").textContent = new Date().getFullYear();
+
+  // каталог
+  const grid = $("#grid"), filters = $("#filters");
+  function render(cat){
+    grid.innerHTML = "";
+    const list = S.bouquets.filter(b => cat === "Все" || b.cat === cat);
+    if (!list.length) grid.appendChild(el("div", "empty", "Скоро здесь появятся новые позиции — напишите нам в WhatsApp!"));
+    list.forEach(b => {
+      const c = el("article", "card"), ph = el("div", "ph"), im = el("img");
+      im.src = img(b.img, 500); im.alt = b.name; im.loading = "lazy"; im.width = 500; im.height = 500;
+      ph.appendChild(im); if (b.hit) ph.appendChild(el("span", "tag", "Хит"));
+      const bd = el("div", "bd"); bd.appendChild(el("h3", null, b.name)); bd.appendChild(el("div", "ds", b.desc));
+      const ft = el("div", "ft"); ft.appendChild(el("span", "price", fmt(b.price)));
+      const a = el("a", "btn wa"); a.innerHTML = '<svg class="ico"><use href="#wa"/></svg>'; a.appendChild(document.createTextNode("Заказать"));
+      a.href = wa("Здравствуйте! Хочу заказать «" + b.name + "» за " + fmt(b.price) + ". Подскажите, пожалуйста, есть ли в наличии?");
+      a.target = "_blank"; a.rel = "noopener";
+      ft.appendChild(a); bd.appendChild(ft); c.appendChild(ph); c.appendChild(bd); grid.appendChild(c);
+    });
+  }
+  S.categories.forEach((c, i) => {
+    const b = el("button", "chip" + (i ? "" : " on"), c); b.type = "button";
+    b.onclick = () => { $$(".chip").forEach(x => x.classList.remove("on")); b.classList.add("on"); render(c); };
+    filters.appendChild(b);
+  });
+  render("Все");
+
+  // доставка
+  const icons = ["🏙️", "🗺️", "🏔️", "⏱️"];
+  S.delivery.forEach((d, i) => { const r = el("div"); r.appendChild(el("span", "n", icons[i % icons.length])); const t = el("div"); t.appendChild(el("b", null, d.t)); t.appendChild(el("span", null, d.d)); r.appendChild(t); $("#dl").appendChild(r); });
+
+  // быстрый заказ
+  const sel = $("#osel");
+  S.bouquets.forEach(b => { const o = el("option", null, b.name + " — " + fmt(b.price)); o.value = b.name; sel.appendChild(o); });
+  sel.appendChild(Object.assign(el("option", null, "Другой / соберите на ваш вкус"), { value: "Другой букет" }));
+  $("#order").addEventListener("submit", e => {
+    e.preventDefault(); const f = e.target;
+    const lines = ["Здравствуйте! Хочу оформить заказ:", "Букет: " + f.b.value];
+    if (f.d.value) lines.push("Дата: " + f.d.value.split("-").reverse().join("."));
+    if (f.t.value) lines.push("Время: " + f.t.value);
+    if (f.a.value) lines.push("Адрес: " + f.a.value);
+    if (f.c.value) lines.push("Открытка: " + f.c.value);
+    window.open(wa(lines.join("\n")), "_blank", "noopener");
+  });
+
+  // отзывы
+  S.reviews.forEach(r => { const c = el("div", "rv"); c.appendChild(el("div", "st", "★".repeat(r.s))); c.appendChild(el("p", null, "«" + r.t + "»")); const au = el("div", "au"); au.appendChild(el("span", "av", r.n[0])); au.appendChild(el("span", null, r.n)); c.appendChild(au); $("#rgrid").appendChild(c); });
+})();
+</script>
+</body>
+</html>
